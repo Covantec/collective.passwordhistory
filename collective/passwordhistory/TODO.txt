@@ -1,0 +1,10 @@
+Remaining tasks for collective.passwordhistory
+==============================================
+
+ - Plone UI for setting the number of stored passwords to check
+
+ - Improve tests and add functional tests
+
+ - Move IPrincipalDeletedEvent notification patch upstream into PlonePAS
+
+ - Move IValidationPlugin handling patch upstream into PlonePAS or CMFPlone

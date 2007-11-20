@@ -1,0 +1,31 @@
+We just import the storage.
+
+    >>> from collective.passwordhistory.storage import UsedPasswordStorage
+    >>> storage = UsedPasswordStorage()
+
+By default there should be no stored passwords for user 'testuser'.
+
+    >>> len(storage.getPasswordsForUser('testuser'))
+    0
+
+Let's add a password for this user.
+
+    >>> storage.setPasswordForUser('testuser', 'secret')
+    >>> len(storage.getPasswordsForUser('testuser'))
+    1
+
+This is great, but what we really want to do is test is a specific password
+has been used before by this user.
+
+    >>> storage.isPasswordUsed('testuser', 'secret')
+    True
+    >>> storage.isPasswordUsed('testuser', 'foobar')
+    False
+
+We can also remove stored passwords for a given user.
+
+    >>> storage.clearPasswordsForUser('testuser')
+    >>> len(storage.getPasswordsForUser('testuser'))
+    0
+    >>> storage.isPasswordUsed('testuser', 'secret')
+    False

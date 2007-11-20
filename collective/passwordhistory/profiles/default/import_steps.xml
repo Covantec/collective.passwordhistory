@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<import-steps>
+  <import-step id="collective_passwordhistory_various" version="20071114-01"
+               handler="collective.passwordhistory.setuphandlers.importVarious"
+               title="collective.passwordhistory plug-in installation">
+ </import-step>
+</import-steps>
+
