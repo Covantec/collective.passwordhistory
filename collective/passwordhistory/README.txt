@@ -44,7 +44,7 @@ attribute to 0 should check the password against every password this user has
 ever used. Let's try and use a password we have used before, but not the most
 recent one::
 
-    >>> plugin.setHistorySize = 0
+    >>> plugin.history_size = 0
     >>> membership.setPassword('foobar')
     Traceback (most recent call last):
     BadRequest: You have used this password before...
