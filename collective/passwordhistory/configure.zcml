@@ -1,6 +1,5 @@
 <configure
     xmlns="http://namespaces.zope.org/zope"
-    xmlns:cmf="http://namespaces.zope.org/cmf"
     xmlns:five="http://namespaces.zope.org/five"
     xmlns:genericsetup="http://namespaces.zope.org/genericsetup"
     i18n_domain="collective.passwordhistory">
@@ -10,17 +9,11 @@
     <!-- Register GenericSetup profile used for installation -->
     <genericsetup:registerProfile
         name="default"
-        title="Prevent password re-use"
+        title="PasswordHistory"
         directory="profiles/default"
         description="Prevent users from re-using previously used passwords."
         provides="Products.GenericSetup.interfaces.EXTENSION"
         for="Products.CMFPlone.interfaces.IPloneSiteRoot"
         />
-
-    <cmf:registerDirectory name="collectivepasswordhistory"/>
-
-    <subscriber
-       handler=".subscribers.clearPasswordsHandler"
-       />
 
 </configure>
