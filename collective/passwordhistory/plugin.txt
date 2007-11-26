@@ -1,0 +1,174 @@
+Functional tests for collective.passwordhistory
+===============================================
+
+Initial setup
+-------------
+
+We use the testbrowser that is shipped with Five, as this provides proper
+Zope 2 integration.
+
+  >>> from Products.Five.testbrowser import Browser
+  >>> browser = Browser()
+  >>> portal_url = self.portal.absolute_url()
+
+We'll also grab the used password storage. This will be handy to check what's
+being stored later on.
+
+  >>> storage = self.portal.acl_users.password_history._storage
+
+The following is useful when writing and debugging testbrowser tests. It lets
+us see all error messages in the error_log.
+
+  >>> self.portal.error_log._ignored_exceptions = ()
+
+With that in place, we can go to the portal front page.
+
+  >>> browser.open(portal_url)
+
+
+Assumptions
+-----------
+
+First of all we have to be aware that Plone by default implements two
+distinct password policies regarding member registration.
+
+  A. Upon registration, a random password is generated for the users and
+     Plone sends out an e-mail containing an URL where the user can set
+     their password.
+
+  B. Users can provide their own password during registration.
+
+This policy can be enabled or disabled in the ``validate_email`` property
+on the Plone Site object.  By default ``validate_email`` is enabled
+and the second policy applies.
+
+Another aspect we have to take into account is the fact that Plone by
+default only allows Administrators to register (other) members, but allowing
+users to register themselves can be enabled.
+
+collective.passwordhistory has to respect both policies (A and B) and both
+use cases (Anonymous or Admin?).
+
+  1. Site Admin registers a user
+
+    A. Plone generates a random password and sends the user an e-mail with
+       a link to set the password.  
+
+    B. The Site Admin provides a password for the user.
+
+  2. Anonymous user registers himself
+
+    A. Plone generates a random password and sends the user an e-mail with
+       a link to set the password.
+
+    B. The user provides his/her own password.
+
+
+1A. Admin registers user but doesn't set password
+-------------------------------------------------
+
+First, we want to login as the portal owner::
+
+  >>> from Products.PloneTestCase import PloneTestCase as PTC
+  >>> browser.getLink('Log in').click()
+  >>> browser.getControl(name='__ac_name').value = PTC.portal_owner
+  >>> browser.getControl(name='__ac_password').value = PTC.default_password
+  >>> browser.getControl(name='submit').click()
+  >>> "You are now logged in" in browser.contents
+  True
+
+We navigate to the Users Overview page and register a new user::
+
+  >>> browser.getLink('Site Setup').click()
+  >>> browser.getLink('Users and Groups').click()
+  >>> browser.getControl('Add New User').click()
+  >>> browser.getControl(name='username').value = 'testuser1A'
+  >>> browser.getControl(name='email').value = 'testuser1A@example.com'
+  >>> browser.getControl(name='form.button.Register').click()
+
+Since the initial password for this user will be a random auto-generated one,
+the plugin doesn't store it. Let's check to make sure this is the case:
+
+  >>> len(storage.getPasswordsForUser('testuser1A'))
+  0
+
+Now logout. We should have received an e-mail at this point::
+
+  >>> browser.getLink('Log out').click()
+  >>> "You are now logged out" in browser.contents
+  True
+  >>> mailhost = self.portal.MailHost
+  >>> len(mailhost.messages)
+  1
+  >>> msg = str(mailhost.messages[-1])
+
+Now that we have the message, we want to look at its contents, and
+then we extract the address that lets us reset our password:
+
+  >>> "To: testuser1A@example.com" in msg
+  True
+  >>> portal_url in msg
+  True
+  >>> url_index = msg.index(portal_url)
+  >>> address = msg[url_index:].split()[0]
+  >>> address # doctest: +ELLIPSIS
+  'http://nohost/plone/passwordreset/...'
+
+Now that we have the address, we will reset our password:
+
+  >>> browser.open(address)
+  >>> "Set your password" in browser.contents
+  True
+
+  >>> form = browser.getForm(name='pwreset_action')
+  >>> form.getControl(name='userid').value = 'testuser1A'
+  >>> form.getControl(name='password').value = 'secret'
+  >>> form.getControl(name='password2').value = 'secret'
+  >>> form.submit()
+  >>> "Your password has been set successfully." in browser.contents
+  True
+
+We can now login using our new password:
+
+  >>> browser.getControl(name='__ac_name').value = 'testuser1A'
+  >>> browser.getControl(name='__ac_password').value = 'secret'
+  >>> browser.getControl(name='submit').click()
+  >>> "You are now logged in" in browser.contents
+  True
+
+Let's change our password:
+
+  >>> browser.getLink('testuser1A').click()
+  >>> browser.getLink('Change Password').click()
+  >>> form = browser.getForm(name='change_password')
+  >>> form.getControl(name='current').value = 'secret'
+  >>> form.getControl(name='password').value = 'foobar'
+  >>> form.getControl(name='password_confirm').value = 'foobar'
+  >>> form.submit()
+  >>> "Password changed." in browser.contents
+  True
+
+Now let's try that again with a password we've used before:
+
+  >>> browser.getLink('Change Password').click()
+  >>> form = browser.getForm(name='change_password')
+  >>> form.getControl(name='current').value = 'foobar'
+  >>> form.getControl(name='password').value = 'secret'
+  >>> form.getControl(name='password_confirm').value = 'secret'
+  >>> form.submit()
+  >>> "Password changed." in browser.contents
+  False
+  >>> "You have used this password before" in browser.contents
+  True
+
+Let's take a moment to check the used password storage. We should have two
+stored passwords for our user:
+
+  >>> len(storage.getPasswordsForUser('testuser1A'))
+  2
+
+
+1B. Admin registers user and set's password
+-------------------------------------------------
+
+
