@@ -111,7 +111,7 @@ class PasswordHistory(BasePlugin):
         manager)
         """
 	self._storage.setPasswordForUser(login, password)
-	return False
+	#return False
 
     security.declarePrivate('doDeleteUser')
     def doDeleteUser(self, login):
