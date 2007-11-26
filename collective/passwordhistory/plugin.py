@@ -3,15 +3,18 @@ import logging
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 
-from zope.component import getUtility
 from zope.interface import implements
+from zope.component import getUtility
+
+from zope.app.component.hooks import getSite
 
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 
 from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
 from Products.PluggableAuthService.utils import classImplements
-from Products.PluggableAuthService.interfaces.plugins import \
-    IValidationPlugin, ICredentialsUpdatePlugin
+from Products.PluggableAuthService.interfaces.plugins import IValidationPlugin
+
+from Products.PlonePAS.interfaces.plugins import IUserManagement
 
 from collective.passwordhistory.interfaces import IUsedPasswordStorage
 
@@ -85,18 +88,41 @@ class PasswordHistory(BasePlugin):
         return errors
 
     #
-    # ICredentialsUpdatePlugin implementation
+    # IUserManagement implementation
     #
 
-    security.declarePrivate('updateCredentials')
-    def updateCredentials(self, request, response, login, new_password):
-        """ Store new password.
-	"""
-	# Don't remember this password if it's already in the history.
-	# This will happen when a user logs in for instance.
-	if not self._storage.isPasswordUsed(login, new_password):
-	    self._storage.setPasswordForUser(login, new_password)
-	    log.info('Password history for user %s updated' % login)
+    security.declarePrivate('doAddUser')
+    def doAddUser(self, login, password):
+        """
+	Add a user record to a User Manager, with the given login and password
 
-classImplements(PasswordHistory, IValidationPlugin, ICredentialsUpdatePlugin)
+        o Return a Boolean indicating whether a user was added or not
+        """
+        site = getSite()
+        if not site.validate_email:
+            self._storage.setPasswordForUser(login, password)
+	return False
+
+    security.declarePrivate('doChangeUser')
+    def doChangeUser(self, login, password, **kw):
+        """
+        Change a user's password (differs from role) roles are set in
+        the pas engine api for the same but are set via a role
+        manager)
+        """
+	self._storage.setPasswordForUser(login, password)
+	return False
+
+    security.declarePrivate('doDeleteUser')
+    def doDeleteUser(self, login):
+        """
+        Remove a user record from a User Manager, with the given login
+        and password
+
+        o Return a Boolean indicating whether a user was removed or not
+        """
+        self._storage.clearPasswordsForUser(login)
+	return False
+
+classImplements(PasswordHistory, IValidationPlugin, IUserManagement)
 InitializeClass(PasswordHistory)
