@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<componentregistry>
+ <adapters/>
+ <utilities>
+  <utility
+     interface="collective.passwordhistory.interfaces.IUsedPasswordStorage"
+     factory="collective.passwordhistory.storage.UsedPasswordStorage"/>
+ </utilities>
+</componentregistry>
