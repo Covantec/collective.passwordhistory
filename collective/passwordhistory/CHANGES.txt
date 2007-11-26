@@ -1,0 +1,17 @@
+collective.passwordhistory changes
+==================================
+
+0.2 svn/dev
+-----------
+
+- Major architectural changes. We now (ab)use the IUserAdderPlugin and
+  IUserManagement plugin methods to add/update/remove passwords from the
+  used password storage, rather than using ICredentialsUpdatePlugin.
+  This also means we don't need to patch PlonePAS to fire the
+  PrincipalDeleted event, and we don't need a subscriber for that event
+  any more.
+
+- Check to see if Plone auto-generates user's initial passwords. If this is
+  the case, don't store the auto-generated password.
+
+- Improved tests. Added functional tests.
