@@ -22,7 +22,7 @@ If we try a different password, we should be okay::
 
 We can set the number of previous passwords to check against by setting the
 history_size attribute on the storage. Let's only check 1 previous password by
-setting history_size 1. In doing this we don't actually loose any of our
+setting history_size to 1. In doing this we don't actually loose any of our
 stored history, we're merely changing the number of previous passwords to check
 against::
 
