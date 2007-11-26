@@ -1,19 +1,8 @@
 import logging
 
-from AccessControl.Permissions import manage_users as ManageUsers
-from AccessControl.requestmethod import postonly
-
 from Products.CMFCore.utils import getToolByName
 from Products.CMFPlone.RegistrationTool import RegistrationTool
 from Products.PluggableAuthService.interfaces.plugins import IValidationPlugin
-
-from zope.event import notify
-from Products.PluggableAuthService.PluggableAuthService import \
-     PluggableAuthService, _SWALLOWABLE_PLUGIN_EXCEPTIONS
-from Products.PluggableAuthService.PluggableAuthService import security
-from Products.PluggableAuthService.events import PrincipalDeleted
-
-from Products.PlonePAS.interfaces.plugins import IUserManagement
 
 log = logging.getLogger('collective.passwordhistory')
 
@@ -53,25 +42,3 @@ def testPasswordValidity(self, password, confirm=None):
 RegistrationTool.testPasswordValidity = testPasswordValidity
 log.info('Patching RegistrationTool.testPasswordValidity to use PAS validation plugins')
 
-def _doDelUser(self, id):
-    """
-    Given a user id, hand off to a deleter plugin if available.
-    """
-    plugins = self._getOb('plugins')
-    userdeleters = plugins.listPlugins(IUserManagement)
-
-    if not userdeleters:
-        raise NotImplementedError("There is no plugin that can "
-                                  " delete users.")
-
-    for userdeleter_id, userdeleter in userdeleters:
-        try:
-	    user = self.getUserById(id)
-            userdeleter.doDeleteUser(id)
-	    notify(PrincipalDeleted(user))
-        except _SWALLOWABLE_PLUGIN_EXCEPTIONS:
-            pass
-PluggableAuthService._doDelUser = _doDelUser
-
-security.declareProtected(ManageUsers, 'userFolderDelUsers')
-PluggableAuthService.userFolderDelUsers = postonly(PluggableAuthService._doDelUsers)
