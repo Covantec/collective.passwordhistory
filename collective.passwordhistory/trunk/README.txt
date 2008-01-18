@@ -30,7 +30,7 @@ This package requires Plone 3.0 or later.
 Copyright and credits
 ---------------------
 
-collective.passwordstrength is copyright 2007 by `Emyr Thomas`_, and is
+collective.passwordhistory is copyright 2007 by `Emyr Thomas`_, and is
 licensed under the GPL. See LICENSE.txt for details.
 
 .. _Emyr Thomas: emyr.thomas@gmail.com

@@ -6,7 +6,7 @@ from Products.PluggableAuthService.interfaces.plugins import IValidationPlugin
 
 log = logging.getLogger('collective.passwordhistory')
 
-def testPasswordValidity(self, password, confirm=None):
+def testPasswordValidity(self, password, confirm=None, userid=None):
     """ Verify that the password satisfies the portal's requirements.
 
     o If the password is valid, return None.
@@ -26,19 +26,20 @@ def testPasswordValidity(self, password, confirm=None):
     plugins = pas_instance._getOb('plugins')
     validators = plugins.listPlugins(IValidationPlugin)
 
-    membership_tool = getToolByName(self, 'portal_membership')
-    user = membership_tool.getAuthenticatedMember().getId()
+    if not userid:
+        membership_tool = getToolByName(self, 'portal_membership')
+        userid = membership_tool.getAuthenticatedMember().getId()
 
     for validator_id, validator in validators:
-        #user = None
         set_id = ''
         set_info = {'password':password}
-        errors = validator.validateUserInfo( user, set_id, set_info )
+        errors = validator.validateUserInfo( userid, set_id, set_info )
         err += [info['error'] for info in errors if info['id'] == 'password' ]
     if err:
         return ' '.join(err)
     else:
         return None
+
 RegistrationTool.testPasswordValidity = testPasswordValidity
 log.info('Patching RegistrationTool.testPasswordValidity to use PAS validation plugins')
 

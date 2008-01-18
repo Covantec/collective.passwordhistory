@@ -9,7 +9,7 @@
     <!-- Register GenericSetup profile used for installation -->
     <genericsetup:registerProfile
         name="default"
-        title="PasswordHistory"
+        title="Password History"
         directory="profiles/default"
         description="Prevent users from re-using previously used passwords."
         provides="Products.GenericSetup.interfaces.EXTENSION"
