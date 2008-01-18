@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<object name="portal_skins">
+ <object name="collective_passwordhistory"
+    meta_type="Filesystem Directory View"
+    directory="collective.passwordhistory:skins/collective_passwordhistory"/>
+ <skin-path name="*">
+  <layer name="collective_passwordhistory"
+     insert-after="custom"/>
+ </skin-path>
+</object>
